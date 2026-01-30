@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruby Trading Portfolio</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.2em;
+            background: linear-gradient(90deg, #00d4aa, #00a8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header .subtitle { color: #666; font-size: 0.9em; }
+        
+        .stats-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px 25px;
+            text-align: center;
+            min-width: 140px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .stat-card .number { font-size: 2em; font-weight: bold; }
+        .stat-card .label { color: #888; font-size: 0.8em; margin-top: 5px; }
+        .stat-card.cash .number { color: #00d4aa; }
+        .stat-card.invested .number { color: #00a8ff; }
+        .stat-card.pnl-positive .number { color: #26de81; }
+        .stat-card.pnl-negative .number { color: #ff6b6b; }
+        .stat-card.positions .number { color: #feca57; }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        @media (max-width: 900px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .card-header h2 { font-size: 1.1em; }
+        
+        .position {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #00a8ff;
+        }
+        .position.profit { border-left-color: #26de81; }
+        .position.loss { border-left-color: #ff6b6b; }
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .ticker {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #00d4aa;
+        }
+        .position-pnl { font-weight: bold; }
+        .position-pnl.positive { color: #26de81; }
+        .position-pnl.negative { color: #ff6b6b; }
+        .position-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            font-size: 0.85em;
+            color: #888;
+        }
+        .detail-item span { color: #fff; }
+        
+        .signal-card {
+            background: rgba(0, 168, 255, 0.1);
+            border: 1px solid rgba(0, 168, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .signal-card.ready {
+            background: rgba(38, 222, 129, 0.1);
+            border-color: rgba(38, 222, 129, 0.3);
+        }
+        .signal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .signal-ticker { font-weight: bold; font-size: 1.1em; }
+        .signal-status {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        .signal-status.ready { background: #26de81; color: #000; }
+        .signal-status.monitoring { background: #feca57; color: #000; }
+        
+        .checklist {
+            font-size: 0.85em;
+            color: #888;
+        }
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+        }
+        .check { color: #26de81; }
+        .pending { color: #feca57; }
+        
+        .rules-list {
+            font-size: 0.85em;
+        }
+        .rule {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .rule-label { color: #888; }
+        .rule-value { color: #00d4aa; font-weight: 500; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #555;
+        }
+        .empty-state .icon { font-size: 3em; margin-bottom: 10px; }
+        
+        .strategy-badge {
+            background: linear-gradient(90deg, #00d4aa, #00a8ff);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #444;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐾 Ruby Paper Trading</h1>
+        <div class="subtitle">Insider Cluster + Flow Confirmation | Started Jan 29, 2026</div>
+    </div>
+    
+    <div class="stats-row">
+        <div class="stat-card cash">
+            <div class="number">$100,000</div>
+            <div class="label">Cash Available</div>
+        </div>
+        <div class="stat-card invested">
+            <div class="number">$0</div>
+            <div class="label">Invested</div>
+        </div>
+        <div class="stat-card pnl-positive">
+            <div class="number">$0</div>
+            <div class="label">Total P&L</div>
+        </div>
+        <div class="stat-card positions">
+            <div class="number">0/3</div>
+            <div class="label">Positions</div>
+        </div>
+    </div>
+    
+    <div class="main-grid">
+        <div class="card">
+            <div class="card-header">
+                <h2>📈 Open Positions</h2>
+                <span class="strategy-badge">Paper Trading</span>
+            </div>
+            
+            <div class="empty-state">
+                <div class="icon">📊</div>
+                <div>No open positions yet</div>
+                <div style="color: #444; margin-top: 5px;">GKOS ready for first trade</div>
+            </div>
+        </div>
+        
+        <div>
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-header">
+                    <h2>🎯 Active Signals</h2>
+                </div>
+                
+                <div class="signal-card ready">
+                    <div class="signal-header">
+                        <span class="signal-ticker">GKOS</span>
+                        <span class="signal-status ready">READY</span>
+                    </div>
+                    <div class="checklist">
+                        <div class="checklist-item"><span class="check">✓</span> Cluster buy (2 insiders, $4.2M)</div>
+                        <div class="checklist-item"><span class="check">✓</span> Size >$100K ($4.2M total)</div>
+                        <div class="checklist-item"><span class="pending">◐</span> Options flow (checking)</div>
+                        <div class="checklist-item"><span class="check">✓</span> Above 50-day MA (~$113)</div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.8em; color: #26de81;">
+                        Position size: $5,000 (42 shares @ ~$119)
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>📋 Strategy Rules</h2>
+                </div>
+                <div class="rules-list">
+                    <div class="rule">
+                        <span class="rule-label">Max Position</span>
+                        <span class="rule-value">5% ($5,000)</span>
+                    </div>
+                    <div class="rule">
+                        <span class="rule-label">Max Positions</span>
+                        <span class="rule-value">3</span>
+                    </div>
+                    <div class="rule">
+                        <span class="rule-label">Profit Target</span>
+                        <span class="rule-value">+15%</span>
+                    </div>
+                    <div class="rule">
+                        <span class="rule-label">Trailing Stop</span>
+                        <span class="rule-value">10%</span>
+                    </div>
+                    <div class="rule">
+                        <span class="rule-label">Hard Stop</span>
+                        <span class="rule-value">-10%</span>
+                    </div>
+                    <div class="rule">
+                        <span class="rule-label">Time Stop</span>
+                        <span class="rule-value">30 days</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        🐾 Ruby Trading v1.0 | Strategy: Insider Cluster + Flow Confirmation
+    </div>
+</body>
+</html>
