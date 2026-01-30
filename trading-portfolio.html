@@ -87,16 +87,18 @@
         .position-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
         }
         .ticker {
             font-weight: bold;
-            font-size: 1.2em;
+            font-size: 1.3em;
             color: #00d4aa;
         }
-        .position-pnl { font-weight: bold; }
+        .position-pnl { font-weight: bold; font-size: 1.1em; }
         .position-pnl.positive { color: #26de81; }
         .position-pnl.negative { color: #ff6b6b; }
+        .position-pnl.flat { color: #888; }
         .position-details {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -104,47 +106,22 @@
             font-size: 0.85em;
             color: #888;
         }
-        .detail-item span { color: #fff; }
+        .detail-item span { color: #fff; display: block; }
         
-        .signal-card {
-            background: rgba(0, 168, 255, 0.1);
-            border: 1px solid rgba(0, 168, 255, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-        .signal-card.ready {
-            background: rgba(38, 222, 129, 0.1);
-            border-color: rgba(38, 222, 129, 0.3);
-        }
-        .signal-header {
+        .levels {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            gap: 15px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
-        .signal-ticker { font-weight: bold; font-size: 1.1em; }
-        .signal-status {
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.75em;
-            font-weight: bold;
+        .level {
+            font-size: 0.8em;
+            padding: 5px 10px;
+            border-radius: 5px;
         }
-        .signal-status.ready { background: #26de81; color: #000; }
-        .signal-status.monitoring { background: #feca57; color: #000; }
-        
-        .checklist {
-            font-size: 0.85em;
-            color: #888;
-        }
-        .checklist-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 5px 0;
-        }
-        .check { color: #26de81; }
-        .pending { color: #feca57; }
+        .level.stop { background: rgba(255,107,107,0.2); color: #ff6b6b; }
+        .level.target { background: rgba(38,222,129,0.2); color: #26de81; }
         
         .rules-list {
             font-size: 0.85em;
@@ -158,12 +135,19 @@
         .rule-label { color: #888; }
         .rule-value { color: #00d4aa; font-weight: 500; }
         
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #555;
+        .trade-log {
+            font-size: 0.85em;
         }
-        .empty-state .icon { font-size: 3em; margin-bottom: 10px; }
+        .trade-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .trade-entry:last-child { border-bottom: none; }
+        .trade-action { color: #26de81; font-weight: bold; }
+        .trade-ticker { color: #00d4aa; }
+        .trade-details { color: #888; }
         
         .strategy-badge {
             background: linear-gradient(90deg, #00d4aa, #00a8ff);
@@ -173,6 +157,17 @@
             font-weight: bold;
             color: #000;
         }
+        
+        .first-trade-banner {
+            background: linear-gradient(90deg, rgba(0,212,170,0.2), rgba(0,168,255,0.2));
+            border: 1px solid rgba(0,212,170,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .first-trade-banner .emoji { font-size: 2em; }
+        .first-trade-banner .text { color: #00d4aa; font-weight: bold; margin-top: 5px; }
         
         .footer {
             text-align: center;
@@ -188,13 +183,18 @@
         <div class="subtitle">Insider Cluster + Flow Confirmation | Started Jan 29, 2026</div>
     </div>
     
+    <div class="first-trade-banner">
+        <div class="emoji">🎉</div>
+        <div class="text">Trade #1 Executed!</div>
+    </div>
+    
     <div class="stats-row">
         <div class="stat-card cash">
-            <div class="number">$100,000</div>
+            <div class="number">$95,002</div>
             <div class="label">Cash Available</div>
         </div>
         <div class="stat-card invested">
-            <div class="number">$0</div>
+            <div class="number">$4,998</div>
             <div class="label">Invested</div>
         </div>
         <div class="stat-card pnl-positive">
@@ -202,7 +202,7 @@
             <div class="label">Total P&L</div>
         </div>
         <div class="stat-card positions">
-            <div class="number">0/3</div>
+            <div class="number">1/3</div>
             <div class="label">Positions</div>
         </div>
     </div>
@@ -214,37 +214,34 @@
                 <span class="strategy-badge">Paper Trading</span>
             </div>
             
-            <div class="empty-state">
-                <div class="icon">📊</div>
-                <div>No open positions yet</div>
-                <div style="color: #444; margin-top: 5px;">GKOS ready for first trade</div>
+            <div class="position">
+                <div class="position-header">
+                    <span class="ticker">GKOS</span>
+                    <span class="position-pnl flat">$0.00 (0.00%)</span>
+                </div>
+                <div class="position-details">
+                    <div class="detail-item">
+                        Shares
+                        <span>42</span>
+                    </div>
+                    <div class="detail-item">
+                        Entry
+                        <span>$119.00</span>
+                    </div>
+                    <div class="detail-item">
+                        Cost Basis
+                        <span>$4,998</span>
+                    </div>
+                </div>
+                <div class="levels">
+                    <div class="level stop">Stop: $107.10 (-10%)</div>
+                    <div class="level target">Target: $136.85 (+15%)</div>
+                </div>
             </div>
         </div>
         
         <div>
             <div class="card" style="margin-bottom: 20px;">
-                <div class="card-header">
-                    <h2>🎯 Active Signals</h2>
-                </div>
-                
-                <div class="signal-card ready">
-                    <div class="signal-header">
-                        <span class="signal-ticker">GKOS</span>
-                        <span class="signal-status ready">READY</span>
-                    </div>
-                    <div class="checklist">
-                        <div class="checklist-item"><span class="check">✓</span> Cluster buy (2 insiders, $4.2M)</div>
-                        <div class="checklist-item"><span class="check">✓</span> Size >$100K ($4.2M total)</div>
-                        <div class="checklist-item"><span class="pending">◐</span> Options flow (checking)</div>
-                        <div class="checklist-item"><span class="check">✓</span> Above 50-day MA (~$113)</div>
-                    </div>
-                    <div style="margin-top: 10px; font-size: 0.8em; color: #26de81;">
-                        Position size: $5,000 (42 shares @ ~$119)
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
                 <div class="card-header">
                     <h2>📋 Strategy Rules</h2>
                 </div>
@@ -269,9 +266,22 @@
                         <span class="rule-label">Hard Stop</span>
                         <span class="rule-value">-10%</span>
                     </div>
-                    <div class="rule">
-                        <span class="rule-label">Time Stop</span>
-                        <span class="rule-value">30 days</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>📝 Trade Log</h2>
+                </div>
+                <div class="trade-log">
+                    <div class="trade-entry">
+                        <div>
+                            <span class="trade-action">BUY</span>
+                            <span class="trade-ticker">GKOS</span>
+                        </div>
+                        <div class="trade-details">
+                            42 @ $119 • Jan 29
+                        </div>
                     </div>
                 </div>
             </div>
@@ -279,7 +289,7 @@
     </div>
     
     <div class="footer">
-        🐾 Ruby Trading v1.0 | Strategy: Insider Cluster + Flow Confirmation
+        🐾 Ruby Trading v1.0 | Updated: Jan 29, 2026 7:50 PM CT
     </div>
 </body>
 </html>
