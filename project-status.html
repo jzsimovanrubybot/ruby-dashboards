@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruby Project Status</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        .header .subtitle {
+            color: #888;
+            font-size: 0.9em;
+        }
+        .stats-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px 30px;
+            text-align: center;
+            min-width: 120px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        .stat-card .label {
+            color: #888;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+        .stat-card.active .number { color: #48dbfb; }
+        .stat-card.queued .number { color: #feca57; }
+        .stat-card.done .number { color: #26de81; }
+        .stat-card.stalled .number { color: #ff6b6b; }
+        
+        .columns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .column {
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .column-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .column-header .icon {
+            font-size: 1.5em;
+        }
+        .column-header h2 {
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        .project-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .project-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .project-card.high { border-left-color: #ff6b6b; }
+        .project-card.medium { border-left-color: #feca57; }
+        .project-card.done { border-left-color: #26de81; }
+        .project-card.stalled { border-left-color: #a55eea; }
+        
+        .project-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        .project-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48dbfb, #26de81);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+        .tag.treat-traders { background: #e056fd33; color: #e056fd; }
+        .tag.trading { background: #26de8133; color: #26de81; }
+        .tag.caddo { background: #feca5733; color: #feca57; }
+        .tag.infra { background: #48dbfb33; color: #48dbfb; }
+        .tag.discord { background: #7289da33; color: #7289da; }
+        
+        .project-note {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+        }
+        .last-activity {
+            font-size: 0.75em;
+            color: #666;
+        }
+        
+        .beaver-status {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+        }
+        .beaver-status .emoji {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        .beaver-status .mode {
+            font-size: 1.2em;
+            color: #26de81;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #555;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐕 Ruby Project Status</h1>
+        <div class="subtitle">Updated: Jan 29, 2026 • 7:27 PM CT</div>
+    </div>
+    
+    <div class="stats-row">
+        <div class="stat-card active">
+            <div class="number">1</div>
+            <div class="label">In Progress</div>
+        </div>
+        <div class="stat-card queued">
+            <div class="number">3</div>
+            <div class="label">Queued</div>
+        </div>
+        <div class="stat-card done">
+            <div class="number">3</div>
+            <div class="label">Completed</div>
+        </div>
+        <div class="stat-card stalled">
+            <div class="number">1</div>
+            <div class="label">Stalled</div>
+        </div>
+    </div>
+    
+    <div class="columns">
+        <!-- In Progress -->
+        <div class="column">
+            <div class="column-header">
+                <span class="icon">🔄</span>
+                <h2>In Progress</h2>
+            </div>
+            
+            <div class="project-card high">
+                <div class="project-title">Steve French Zoom Ingestion</div>
+                <div class="project-meta">
+                    <span class="tag treat-traders">Treat Traders</span>
+                    <span class="last-activity">Today</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 11%"></div>
+                </div>
+                <div class="project-note">⏸️ Need 31 more URLs from Justin</div>
+            </div>
+        </div>
+        
+        <!-- Queued -->
+        <div class="column">
+            <div class="column-header">
+                <span class="icon">⏳</span>
+                <h2>Queued</h2>
+            </div>
+            
+            <div class="project-card medium">
+                <div class="project-title">Merge Expert Systems (Wes + Steve)</div>
+                <div class="project-meta">
+                    <span class="tag treat-traders">Treat Traders</span>
+                    <span class="last-activity">Today</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="project-note">Waiting for Zoom ingestion</div>
+            </div>
+            
+            <div class="project-card medium">
+                <div class="project-title">Visual Deal Dashboard</div>
+                <div class="project-meta">
+                    <span class="tag treat-traders">Treat Traders</span>
+                    <span class="last-activity">Today</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="project-note">Canvas UI with expert verdicts</div>
+            </div>
+            
+            <div class="project-card medium">
+                <div class="project-title">Trading Paper Portfolio</div>
+                <div class="project-meta">
+                    <span class="tag trading">Trading</span>
+                    <span class="last-activity">Never</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="project-note">Visual journal & P/L tracker</div>
+            </div>
+        </div>
+        
+        <!-- Stalled/Blocked -->
+        <div class="column">
+            <div class="column-header">
+                <span class="icon">⚠️</span>
+                <h2>Needs Attention</h2>
+            </div>
+            
+            <div class="project-card stalled">
+                <div class="project-title">Discord: Anti Tank Minds Bot</div>
+                <div class="project-meta">
+                    <span class="tag discord">Discord</span>
+                    <span class="last-activity">Today</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 50%"></div>
+                </div>
+                <div class="project-note">🔒 Bot is private, need to add to server</div>
+            </div>
+        </div>
+        
+        <!-- Done -->
+        <div class="column">
+            <div class="column-header">
+                <span class="icon">✅</span>
+                <h2>Recently Completed</h2>
+            </div>
+            
+            <div class="project-card done">
+                <div class="project-title">Ruby's Toy Arbitrage System v2.0</div>
+                <div class="project-meta">
+                    <span class="tag treat-traders">Treat Traders</span>
+                    <span class="last-activity">Today</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%"></div>
+                </div>
+            </div>
+            
+            <div class="project-card done">
+                <div class="project-title">Toy Investor Video Transcription</div>
+                <div class="project-meta">
+                    <span class="tag treat-traders">Treat Traders</span>
+                    <span class="last-activity">Today</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 97.8%"></div>
+                </div>
+                <div class="project-note">45/46 videos (97.8%)</div>
+            </div>
+            
+            <div class="project-card done">
+                <div class="project-title">MAX BEAVER Mode</div>
+                <div class="project-meta">
+                    <span class="tag infra">Infrastructure</span>
+                    <span class="last-activity">Today</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="beaver-status">
+        <div class="emoji">🦫⚡</div>
+        <div class="mode">MAX BEAVER MODE ACTIVE</div>
+        <div style="color: #888; margin-top: 5px;">20min idle • 45min cooldown • 4x daily builds</div>
+    </div>
+    
+    <div class="footer">
+        🐕 Ruby • Built with value + visuals + fun
+    </div>
+</body>
+</html>
